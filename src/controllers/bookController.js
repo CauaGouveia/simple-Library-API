@@ -1,18 +1,19 @@
-import Book from "../models/Book.js";
+import {Book} from "../models/index.js";
 import {writer} from "../models/writer.js";
+import notFound from "../errors/notFound.js";
 
 class BookController {
 
-    static async listBooks (req, res) {
+    static async listBooks (req, res, next) {
         try{
             const allBooks = await Book.find({});
             res.status(200).json(allBooks);
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to retrieve books` });
+            next(error);
         }
     }
 
-    static async getBookById (req, res) {
+    static async getBookById (req, res, next) {
         try{
             const id = req.params.id;
             if (!id) {
@@ -25,23 +26,27 @@ class BookController {
                 res.status(404).json({ message: "Book not found" });
             }
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to retrieve book` });
+            next(error);
         }
     };
 
-    static async addBook (req, res) {
+    static async addBook (req, res, next) {
         const newBook = req.body;
         try{
             const writerFound = await writer.findById(newBook.writer);
             const bookCompleted = { ...newBook, writer: {...writerFound._doc } };
             const book = await Book.create(bookCompleted);
-            res.status(201).json({ message: "Book added successfully", Book: book });
+            if (book) {
+                res.status(201).json({ message: "Book added successfully", Book: book });
+            } else{
+                next(new notFound("Error in adding book"));
+            }
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to add book` });
+            next(error);
         }
     };
 
-    static async updateBook (req, res) {
+    static async updateBook (req, res, next) {
         try{
             const id = req.params.id;
             if (!id) {
@@ -50,11 +55,11 @@ class BookController {
             await Book.findByIdAndUpdate(id, req.body);
             res.status(200).json({ message: "Book updated successfully" });
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to update book` });
+            next(error);
         }
     }
 
-    static async deleteBookById (req, res) {
+    static async deleteBookById (req, res, next) {
         try{
             const id = req.params.id;
             if (!id) {
@@ -63,11 +68,11 @@ class BookController {
             await Book.findByIdAndDelete(id);
             res.status(200).json({ message: "Book deleted successfully" });
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to delete book` });
+            next(error);
         }
     }
 
-    static async getBooksByPublisher (req, res) {
+    static async getBooksByPublisher (req, res, next) {
         try{
             const publisher = req.query.publisher;
             if (!publisher) {
@@ -80,7 +85,7 @@ class BookController {
                 res.status(404).json({ message: "No books found for this publisher" });
             }
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to retrieve books by publisher` });
+            next(error);
         }
     }
 

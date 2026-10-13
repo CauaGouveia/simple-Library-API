@@ -1,6 +1,8 @@
 import express from "express";
 import connectToDatabase from "./config/dbConnect.js";
 import routes from "./routes/index.js";
+import errorTreatment from "./middlewares/errorTreatment.js";
+import manipulation404 from "./middlewares/404manipulation.js";
 
 const connection = await connectToDatabase();
 
@@ -15,10 +17,8 @@ connection.once("open", () => {
 const app = express();
 routes(app);
 
-app.delete("/books/:id", (req, res) => {
-    const index = searchBook(req.params.id);
-    books.splice(index, 1);
-    res.status(200).send("Book deleted successfully");
-});
+app.use(manipulation404);
+
+app.use(errorTreatment);
 
 export default app;

@@ -1,43 +1,44 @@
-import {writer} from "../models/writer.js";
+import {writer} from "../models/index.js";
+import notFound from "../errors/notFound.js";
 
 class WriterController {
 
-    static async listWriter (req, res) {
+    static async listWriter (req, res, next) {
         try{
             const allWriters = await writer.find({});
             res.status(200).json(allWriters);
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to retrieve writers` });
+            next(error);
         }
     }
 
-    static async getWriterById (req, res) {
+    static async getWriterById (req, res, next) {
         try{
             const id = req.params.id;
             if (!id) {
                 return res.status(400).json({ message: "Writer ID is required" });
             }
-            const writer = await writer.findById(id);
-            if (writer) {
-                res.status(200).json(writer);
+            const writerById = await writer.findById(id);
+            if (writerById) {
+                res.status(200).json(writerById);
             } else {
-                res.status(404).json({ message: "Writer not found" });
+                next(new notFound("Writer not found"));
             }
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to retrieve writer` });
+           next (error);
         }
     };
 
-    static async addWriter (req, res) {
+    static async addWriter (req, res, next) {
         try{
             const newWriter = await writer.create(req.body);
             res.status(201).json({ message: "Writer added successfully", Writer: newWriter });
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to add writer` });
+            next(error);
         }
     };
 
-    static async updateWriter (req, res) {
+    static async updateWriter (req, res, next) {
         try{
             const id = req.params.id;
             if (!id) {
@@ -46,11 +47,11 @@ class WriterController {
             await writer.findByIdAndUpdate(id, req.body);
             res.status(200).json({ message: "Writer updated successfully" });
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to update writer` });
+            next(error);
         }
     }
 
-    static async deleteWriterById (req, res) {
+    static async deleteWriterById (req, res, next) {
         try{
             const id = req.params.id;
             if (!id) {
@@ -59,7 +60,7 @@ class WriterController {
             await writer.findByIdAndDelete(id);
             res.status(200).json({ message: "Writer deleted successfully" });
         } catch (error) {
-            res.status(500).json({ message: `${error.message} - Failed to delete writer` });
+            next(error);
         }
     }
 
