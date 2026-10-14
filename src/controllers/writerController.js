@@ -5,8 +5,9 @@ class WriterController {
 
     static async listWriter (req, res, next) {
         try{
-            const allWriters = await writer.find({});
-            res.status(200).json(allWriters);
+            const allWriters =  writer.find({});
+            req.result = allWriters;
+            next();
         } catch (error) {
             next(error);
         }

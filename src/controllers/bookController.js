@@ -2,12 +2,14 @@ import {Book} from "../models/index.js";
 import {writer} from "../models/writer.js";
 import notFound from "../errors/notFound.js";
 
+
 class BookController {
 
     static async listBooks (req, res, next) {
         try{
-            const allBooks = await Book.find({});
-            res.status(200).json(allBooks);
+            const searchBooks = Book.find();
+            req.result = searchBooks
+            next();
         } catch (error) {
             next(error);
         }
@@ -72,18 +74,23 @@ class BookController {
         }
     }
 
-    static async getBooksByPublisher (req, res, next) {
+    static async getBooksByFilter (req, res, next) {
         try{
-            const publisher = req.query.publisher;
-            if (!publisher) {
-                return res.status(400).json({ message: "Publisher is required" });
-            }
-            const booksByPublisher = await Book.find({ publisher: { $regex: publisher, $options: "i" } });
-            if (booksByPublisher) {
-                res.status(200).json(booksByPublisher);
-            } else {
-                res.status(404).json({ message: "No books found for this publisher" });
-            }
+            const {publisher, title, nameWriter} = req.query;
+
+            const search = {}   
+
+            if (publisher) search.publisher = { $regex: publisher, $options: "i" };
+            if (title) search.title = { $regex: title, $options: "i" };
+            if(nameWriter) {
+               const writerName = await writer.findOne({ name: { $regex: nameWriter, $options: "i"}});
+               search.writer = writerName
+            };
+
+            const filterResult = Book.find(search).populate("writer");
+            req.result = filterResult;
+            next();
+            
         } catch (error) {
             next(error);
         }

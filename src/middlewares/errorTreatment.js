@@ -14,7 +14,7 @@ function errorTreatment (error, req, res, next) {
                 } else if (error instanceof notFound) {
                     error.sendErrorResponse(res);
                 } else {
-                    new baseErrors().sendErrorResponse(res);
+                    new baseErrors("Internal server error", 500).sendErrorResponse(res);
                 }
 }
 
